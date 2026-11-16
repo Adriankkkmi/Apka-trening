@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Plan & Trening</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --border: #334155;
+      --text: #f1f5f9; --muted: #94a3b8;
+      --accent: #38bdf8; --green: #22c55e; --orange: #f59e0b; --red: #ef4444;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; padding: 68px 12px 86px;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.4; touch-action: manipulation;
+    }
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 58px; z-index: 50;
+      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px;
+    }
+    .timer-display {
+      font-variant-numeric: tabular-nums; font-weight: 800; font-size: 18px;
+      color: var(--accent); min-width: 78px;
+    }
+    .timer-display.done { color: var(--green); animation: pulse 0.6s infinite alternate; }
+    @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+    .timer-btns { display: flex; gap: 6px; flex-wrap: nowrap; }
+    .tbtn {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 9px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .tbtn.stop { background: rgba(239,68,68,0.18); border-color: var(--red); color: #fca5a5; }
+    .bottomnav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 68px; z-index: 50;
+      background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      display: grid; grid-template-columns: repeat(4, 1fr);
+    }
+    .nav-btn {
+      background: none; border: none; color: var(--muted);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; gap: 3px; cursor: pointer;
+    }
+    .nav-btn span.ico { font-size: 20px; }
+    .nav-btn.active { color: var(--accent); }
+    h2 { margin: 4px 0 8px; font-size: 19px; display: flex; justify-content: space-between; align-items: center; }
+    .sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 13px; margin-bottom: 10px; transition: 0.15s;
+    }
+    .card.checked { border-color: var(--green); opacity: 0.62; }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.4px;
+      padding: 2px 7px; border-radius: 6px; margin-bottom: 5px;
+      background: rgba(56,189,248,0.15); color: var(--accent); text-transform: uppercase;
+    }
+    .badge.org { background: rgba(245,158,11,0.18); color: var(--orange); }
+    .badge.grn { background: rgba(34,197,94,0.18); color: var(--green); }
+    .title { font-weight: 700; font-size: 15px; margin: 0; }
+    .target { font-size: 13px; color: var(--accent); font-weight: 600; margin-top: 2px; }
+    .cue { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+    .row-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 8px; flex-wrap: wrap; }
+    .check-btn {
+      width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--border);
+      background: var(--bg); color: transparent; font-weight: 900; font-size: 16px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;
+    }
+    .card.checked .check-btn { background: var(--green); border-color: var(--green); color: #052e16; }
+    .seg {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px;
+      background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border);
+    }
+    .seg button {
+      border: none; background: transparent; color: var(--muted); padding: 9px;
+      border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer;
+    }
+    .seg button.active { background: var(--accent); color: #0f172a; }
+    .deload-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 12px; margin-bottom: 12px; font-size: 13px; font-weight: 600;
+    }
+    .deload-bar.on { border-color: var(--orange); background: rgba(245,158,11,0.12); color: #fde68a; }
+    .sets { display: flex; gap: 6px; }
+    .set-btn {
+      padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--muted); font-weight: 700; font-size: 12px; cursor: pointer;
+    }
+    .set-btn.done { background: var(--green); border-color: var(--green); color: #052e16; }
+    .inputs { display: grid; grid-template-columns: 1fr 1.3fr; gap: 8px; margin-top: 9px; }
+    .inp-wrap label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 2px; text-transform: uppercase; }
+    .inp-wrap input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      border-radius: 8px; padding: 7px 9px; font-size: 13px;
+    }
+    .reset-link {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      border-radius: 8px; padding: 4px 9px; font-size: 11px; cursor: pointer;
+    }
+    .cd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .cd-box {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px; text-align: center;
+    }
+    .cd-num { font-size: 22px; font-weight: 800; color: var(--accent); }
+    .cd-lbl { font-size: 11px; color: var(--muted); }
+    .list-row { padding: 7px 0; border-bottom: 1px solid rgba(51,65,85,0.6); font-size: 13px; }
+    .list-row:last-child { border-bottom: none; }
+    .list-row strong { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div id="timerDisplay" class="timer-display">⏱ 00:00</div>
+    <div class="timer-btns">
+      <button class="tbtn" onclick="startTimer(45)">45s</button>
+      <button class="tbtn" onclick="startTimer(60)">60s</button>
+      <button class="tbtn" onclick="startTimer(90)">90s</button>
+      <button class="tbtn" onclick="startTimer(120)">2m</button>
+      <button class="tbtn stop" onclick="stopTimer()">✕</button>
+    </div>
+  </header>
+
+  <main id="app"></main>
+
+  <nav class="bottomnav">
+    <button class="nav-btn active" onclick="setTab('morning', this)"><span class="ico">☀️</span>Rano</button>
+    <button class="nav-btn" onclick="setTab('gym', this)"><span class="ico">🏋️</span>Siłka</button>
+    <button class="nav-btn" onclick="setTab('evening', this)"><span class="ico">🌙</span>Wieczór</button>
+    <button class="nav-btn" onclick="setTab('plan', this)"><span class="ico">📅</span>Plan</button>
+  </nav>
+
+<script>
+const MORNING = [
+  { id: 'm1', name: 'Koci grzbiet + Rotacje piersiowe', target: '6 + 6 powt. / str.', sec: 60, cue: 'W klęku: zaokrąglij/wygnij plecy, potem dłoń na kark i otwieraj łokieć w górę.' },
+  { id: 'm2', name: 'Staw skokowy przy ścianie', target: '10–12 powt. / nogę', sec: 0, cue: 'Palce 8–10 cm od ściany. Kolano dotyka ściany BEZ odrywania pięty.' },
+  { id: 'm3', name: 'Rotacje bioder 90/90', target: '8–10 przejść / str.', sec: 0, cue: 'Siad na ziemi, oba kolana pod kątem 90°. Przenoś kolana z boku na bok, plecy proste.' },
+  { id: 'm4', name: 'Najlepsze rozciąganie świata', target: '5 powt. / stronę', sec: 0, cue: 'Z pompki stopa obok dłoni → łokieć w dół do kostki → otwórz rękę wysoko w górę.' },
+  { id: 'm5', name: 'Głęboki przysiad + Kozaki', target: '45 s (20s dół + po 4 na bok)', sec: 45, cue: 'Pięty na ziemi, klatka dumnie w górze, rozpychaj kolana łokciami, potem przejścia na boki.' },
+  { id: 'm6', name: 'Rozruch nadgarstków', target: '45 sek.', sec: 45, cue: 'W podporze na kolanach bujanie przód-tył, potem dłonie palcami do kolan.' }
+];
+
+const EVENING = [
+  { id: 'e1', name: 'Couch Stretch (Zginacz biodra)', target: '60–90 s / nogę', sec: 90, cue: 'Goleń pionowo o ścianę/łóżko, druga noga z przodu. Napnij pośladek, nie wyginaj lędźwi!' },
+  { id: 'e2', name: 'Pozycja gołębia (Pośladki)', target: '60 s / stronę', sec: 60, cue: 'Zgięta noga z przodu w poprzek, druga wyprostowana z tyłu. Zejdź na łokcie, oddychaj.' },
+  { id: 'e3', name: 'Pozycja żaby (Pachwiny)', target: '60–90 s', sec: 60, cue: 'Kolana szeroko, stopy na zewnątrz, łydki równolegle. Delikatnie cofaj biodra.' },
+  { id: 'e4', name: 'Tył uda na leżąco (Flossing)', target: '45–60 s / nogę', sec: 60, cue: 'Na plecach, guma/ręcznik na stopie, noga prosta w górę. Ruszaj samą stopą góra-dół 10x.' },
+  { id: 'e5', name: 'Otwarcie klatki na wałku/ręczniku', target: '60 s', sec: 60, cue: 'Wałek pod łopatkami, dłonie za głowę, łokcie szeroko. Opadaj górą pleców na wydechu.' },
+  { id: 'e6', name: 'Łydka o ścianę + Piłeczka pod stopą', target: '2x30 s / nogę + 30 s', sec: 30, cue: '30 s noga prosta z tyłu, 30 s lekko ugięte kolano (płaszczkowaty). Potem rozbij stopę piłeczką.' },
+  { id: 'e7', name: 'Nogi na ścianie + Oddech na sen', target: '2–3 min (wdech 4s / wydech 7s)', sec: 120, cue: 'Pośladki pod ścianą, proste nogi w górze. Zamknij oczy, wyłącz głowę przed snem.' }
+];
+
+const WORKOUTS = {
+  A: [
+    { id: 'a1', tag: 'Dynamika', tc: 'org', name: 'Skoki na skrzynię (Box Jumps)', target: '3 x 4–5 powt.', rest: 90, sets: 3, cue: 'Świeży układ nerwowy! Wskakuj miękko, schodź powoli w dół (nie zeskakuj).' },
+    { id: 'a2', tag: 'Dół Główny', tc: '', name: 'Przysiad ze sztangą / Goblet', target: '3 x 6–8 powt. (RIR 1–2)', rest: 120, sets: 3, cue: 'Głęboko, kontrola w dół, dynamicznie w górę. Zostaw 1–2 powt. w zapasie.' },
+    { id: 'a3', tag: 'Dół Jednonóż', tc: '', name: 'RDL jednonóż z hantlem', target: '3 x 8 na nogę', rest: 60, sets: 3, cue: 'Lekko dotykaj drugą ręką ławki dla balansu, ciągnij biodrem w tył. Tył uda + kostka.' },
+    { id: 'a4a', tag: 'Superseria 4A', tc: 'grn', name: 'Wyciskanie hantli (ławka płaska/lekki skos)', target: '3 x 8–10 powt.', rest: 0, sets: 3, cue: 'Łopatki ściągnięte. Od razu po tym robisz Wiosłowanie 4B!' },
+    { id: 'a4b', tag: 'Superseria 4B', tc: 'grn', name: 'Wiosłowanie z podparciem klatki / hantlem', target: '3 x 8–10 powt.', rest: 90, sets: 3, cue: 'Ciągnij łokciem do biodra, bez bujania lędźwiami. Po parze 90 s przerwy.' },
+    { id: 'a5a', tag: 'Finisher 5A', tc: 'org', name: 'Spacer Farmera (ciężkie hantle)', target: '3 x 30–40 s (lub 35 m)', rest: 45, sets: 3, cue: 'Brzuch napięty, barki w dół, nie garb się. Zabójca arm-pumpu na Enduro.' },
+    { id: 'a5b', tag: 'Finisher 5B', tc: '', name: 'Dead Bug (Martwy robak)', target: '3 x 8–10 / str.', rest: 60, sets: 3, cue: 'Lędźwia cały czas przyklejone do maty! Powolny wydech przy prostowaniu nogi.' }
+  ],
+  B: [
+    { id: 'b1', tag: 'Dynamika', tc: 'org', name: 'Skoki boczne (Skater Jumps)', target: '3 x 5 na stronę', rest: 90, sets: 3, cue: 'Mocne wybicie w bok i stabilne lądowanie na 1 nodze (1 s pauzy). Pod narty i biegi!' },
+    { id: 'b2', tag: 'Dół Główny', tc: '', name: 'Rumuński Martwy Ciąg (RDL) sztangą', target: '3 x 6–8 powt. (RIR 1–2)', rest: 120, sets: 3, cue: 'Kolana lekko ugięte, wypychasz biodra w tył jak najdalej, sztanga blisko nóg.' },
+    { id: 'b3', tag: 'Dół Jednonóż', tc: '', name: 'Przysiady Bułgarskie (tempo 3s w dół)', target: '3 x 8 na nogę', rest: 90, sets: 3, cue: '3 sekundy powolnego opuszczania! Kolano w linii ze stopą, tułów lekko pochylony.' },
+    { id: 'b4a', tag: 'Superseria 4A', tc: 'grn', name: 'Wyciskanie nad głowę (OHP hantlami/sztangą)', target: '3 x 8–10 powt.', rest: 0, sets: 3, cue: 'Napięty brzuch i pośladki (nie wyginaj lędźwi). Od razu przechodzisz do 4B!' },
+    { id: 'b4b', tag: 'Superseria 4B', tc: 'grn', name: 'Podciąganie na drążku / ściąganie wyciągu', target: '3 x 6–10 powt.', rest: 90, sets: 3, cue: 'Pełny wyprost na dole, klatka do drążka. Po parze 90 s przerwy.' },
+    { id: 'b5a', tag: 'Finisher 5A', tc: 'org', name: 'Wspięcia na palce z ciężarem (na stopniu)', target: '3 x 12–15 powt.', rest: 45, sets: 3, cue: 'Pełne zejście piętą w dół + 2 sekundy pauzy na dole! Ochrona Achillesa.' },
+    { id: 'b5b', tag: 'Finisher 5B', tc: '', name: 'Pallof Press / Deska Kopenhaska', target: '3 x 10 / str. (lub 25s)', rest: 60, sets: 3, cue: 'Antyrotacja tułowia – nie daj się skręcić gumie/wyciągowi.' }
+  ]
+};
+
+let state = { tab: 'morning', gymDay: 'A', deload: false, checks: {}, sets: {}, logs: {} };
+try {
+  const saved = JSON.parse(localStorage.getItem('plan_app_v1'));
+  if (saved) state = { ...state, ...saved };
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem('plan_app_v1', JSON.stringify(state)); } catch(e) {}
+}
+
+// Timer + Beep
+let timerInt = null, timeLeft = 0, audioCtx = null;
+function beep() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    [0, 0.22].forEach(delay => {
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.type = 'sine'; osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.16);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + delay); osc.stop(audioCtx.currentTime + delay + 0.17);
+    });
+  } catch(e) {}
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+}
+function updateTimerUI(isDone) {
+  const el = document.getElementById('timerDisplay');
+  const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+  const s = String(timeLeft % 60).padStart(2, '0');
+  el.textContent = `⏱ ${m}:${s}`;
+  el.classList.toggle('done', !!isDone);
+}
+function startTimer(sec) {
+  stopTimer();
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch(e) {}
+  timeLeft = sec;
+  updateTimerUI(false);
+  timerInt = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      timeLeft = 0; clearInterval(timerInt); timerInt = null;
+      updateTimerUI(true); beep();
+    } else updateTimerUI(false);
+  }, 1000);
+}
+function stopTimer() {
+  if (timerInt) clearInterval(timerInt);
+  timerInt = null; timeLeft = 0; updateTimerUI(false);
+}
+
+// Actions
+function setTab(t, btn) {
+  state.tab = t; save();
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  render(); window.scrollTo(0, 0);
+}
+function toggleCheck(id) { state.checks[id] = !state.checks[id]; save(); render(); }
+function clearChecks(prefix) {
+  Object.keys(state.checks).forEach(k => { if (k.startsWith(prefix)) delete state.checks[k]; });
+  save(); render();
+}
+function clearSets() {
+  const prefix = state.gymDay.toLowerCase();
+  Object.keys(state.sets).forEach(k => { if (k.startsWith(prefix)) delete state.sets[k]; });
+  save(); render();
+}
+function toggleSet(id, idx) {
+  const key = id + '_' + idx;
+  state.sets[key] = !state.sets[key]; save(); render();
+}
+function setLog(id, field, val) {
+  if (!state.logs[id]) state.logs[id] = {};
+  state.logs[id][field] = val; save();
+}
+function toggleDeload() { state.deload = !state.deload; save(); render(); }
+function switchGym(day) { state.gymDay = day; save(); render(); }
+
+function renderMobility(list, title, subtitle, prefix) {
+  return `
+    <h2>${title} <button class="reset-link" onclick="clearChecks('${prefix}')">Resetuj ptaszki</button></h2>
+    <p class="sub">${subtitle}</p>
+    ${list.map(x => `
+      <div class="card ${state.checks[x.id] ? 'checked' : ''}">
+        <div class="card-head">
+          <div>
+            <p class="title">${x.name}</p>
+            <div class="target">${x.target}</div>
+          </div>
+          <button class="check-btn" onclick="toggleCheck('${x.id}')">✓</button>
+        </div>
+        <p class="cue">${x.cue}</p>
+        ${x.sec ? `<div class="row-actions"><button class="tbtn" onclick="startTimer(${x.sec})">⏱ Odlicz ${x.sec} s</button></div>` : ''}
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderGym() {
+  const list = WORKOUTS[state.gymDay];
+  const maxSets = state.deload ? 2 : 3;
+  return `
+    <div class="seg">
+      <button class="${state.gymDay==='A'?'active':''}" onclick="switchGym('A')">Trening A (Pon)</button>
+      <button class="${state.gymDay==='B'?'active':''}" onclick="switchGym('B')">Trening B (Czw)</button>
+    </div>
+    <div class="deload-bar ${state.deload?'on':''}" onclick="toggleDeload()" style="cursor:pointer">
+      <span>${state.deload ? '🟠 DELOAD WŁĄCZONY (-1 seria, -15% ciężaru)' : '⚪ Tryb normalny (kliknij dla Deloadu)'}</span>
+      <button class="reset-link" onclick="event.stopPropagation(); clearSets()">Wyczyść serie</button>
+    </div>
+    ${list.map(x => {
+      const log = state.logs[x.id] || {};
+      const setsCount = Math.min(x.sets, maxSets);
+      const btns = Array.from({length: setsCount}, (_, i) => {
+        const done = state.sets[x.id + '_' + i];
+        return `<button class="set-btn ${done?'done':''}" onclick="toggleSet('${x.id}', ${i})">S${i+1}</button>`;
+      }).join('');
+      return `
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <span class="badge ${x.tc}">${x.tag}</span>
+              <p class="title">${x.name}</p>
+              <div class="target">${x.target}</div>
+            </div>
+            ${x.rest ? `<button class="tbtn" onclick="startTimer(${x.rest})">⏱ ${x.rest}s</button>` : ''}
+          </div>
+          <p class="cue">${x.cue}</p>
+          <div class="row-actions"><div class="sets">${btns}</div></div>
+          <div class="inputs">
+            <div class="inp-wrap"><label>Ciężar (kg)</label><input type="text" placeholder="np. 60" value="${log.w||''}" oninput="setLog('${x.id}','w',this.value)" /></div>
+            <div class="inp-wrap"><label>Powtórzenia / Czas</label><input type="text" placeholder="np. 8 / 7 / 7" value="${log.r||''}" oninput="setLog('${x.id}','r',this.value)" /></div>
+          </div>
+        </div>
+      `;
+    }).join('')}
+    <div class="card">
+      <span class="badge">Progresja</span>
+      <p class="cue" style="margin-top:2px; color:#cbd5e1">
+        • <strong>Podwójna progresja:</strong> Nabijasz górne widełki we wszystkich 3 seriach (z RIR 1–2) → dokładasz +2,5–5 kg (nogi) / +1,25–2,5 kg (góra) i wracasz na dół widełek.<br>
+        • <strong>Skoki:</strong> Zawsze 4–5 powt., progresujesz wysokością i cichym lądowaniem.<br>
+        • <strong>Co 4. tydzień (lub przed egzaminem):</strong> włącz <em>Deload</em>.
+      </p>
+    </div>
+  `;
+}
+
+function renderPlan() {
+  const daysTo = d => Math.max(0, Math.ceil((new Date(d + 'T09:00:00') - new Date()) / 86400000));
+  return `
+    <h2>Plan Życia & Egzaminy</h2>
+    <div class="cd-grid">
+      <div class="cd-box"><div class="cd-num">${daysTo('2027-01-07')} dni</div><div class="cd-lbl">💻 Zawodowy IT (7 sty)</div></div>
+      <div class="cd-box"><div class="cd-num">${daysTo('2027-05-04')} dni</div><div class="cd-lbl">🎓 Matura (4 maj)</div></div>
+    </div>
+    <div class="card">
+      <span class="badge">Rozkład Tygodnia</span>
+      <div class="list-row"><strong>Pon:</strong> Siłka A + Nauka (IT / Matma PR)</div>
+      <div class="list-row"><strong>Wt:</strong> Bieg Strefa 2 (35→55 min + 4–6x15s przebieżki) + Nauka</div>
+      <div class="list-row"><strong>Śr:</strong> Regeneracja / Mobility / Serwis sprzętu + Nauka</div>
+      <div class="list-row"><strong>Czw:</strong> Siłka B + Nauka (IT / Matma PR)</div>
+      <div class="list-row"><strong>Pt:</strong> Podbiegi (6→10 x 30–40s) + Lżejsza nauka / Wolne</div>
+      <div class="list-row"><strong>Sob:</strong> Narty / Długi bieg w terenie / Enduro MTB</div>
+      <div class="list-row"><strong>Nd:</strong> Spacer + Rozciąganie + Blok próbnych arkuszy (3–4h)</div>
+    </div>
+    <div class="card">
+      <span class="badge grn">Plan Dnia Szkolnego</span>
+      <div class="list-row"><strong>06:45</strong> Pobudka, śniadanie + Poranne Mobility (10 min)</div>
+      <div class="list-row"><strong>08:00–15:15</strong> Szkoła (przerwy: testy IT / słówka C1)</div>
+      <div class="list-row"><strong>15:30–16:15</strong> Obiad + 30 min resetu (bez bezmyślnego scrolla)</div>
+      <div class="list-row"><strong>16:15–17:15</strong> Blok I (60 min): Matma PR lub trudne IT</div>
+      <div class="list-row"><strong>17:30–18:45</strong> Trening (Siłka / Bieganie)</div>
+      <div class="list-row"><strong>19:00–20:45</strong> Kolacja + Blok II (90 min): Arkusze IT / Ang PR</div>
+      <div class="list-row"><strong>21:00–22:15</strong> Chill, torba na jutro + Wieczorne Mobility</div>
+      <div class="list-row"><strong>22:15–22:30</strong> Sen (8h = podstawa regeneracji i pamięci!)</div>
+    </div>
+    <div class="card">
+      <span class="badge org">Priorytety Nauki</span>
+      <p class="cue" style="color:#cbd5e1; margin-top:2px">
+        • <strong>Do połowy stycznia:</strong> 55% Zawodowy IT | 35% Matma PR | 10% Ang PR & Polski.<br>
+        • <strong>Po 15 stycznia:</strong> 60% Matma PR | 20% Ang PR | 20% Polski PP & Matma PP.<br>
+        • <strong>Uwaga maj:</strong> 4–7 maja piszesz Polski, Matmę PP, Ang PP i Ang PR (4 dni pod rząd!), a 11 maja Matmę PR.
+      </p>
+    </div>
+  `;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  if (state.tab === 'morning') app.innerHTML = renderMobility(MORNING, '☀️ Poranne Mobility', '8–10 minut zaraz po wstaniu – otwiera stawy przed szkołą.', 'm');
+  else if (state.tab === 'evening') app.innerHTML = renderMobility(EVENING, '🌙 Wieczorne Mobility', '12–15 minut przed snem – długie wydechy, reset po treningu i biurku.', 'e');
+  else if (state.tab === 'gym') app.innerHTML = renderGym();
+  else app.innerHTML = renderPlan();
+}
+
+render();
+</script>
+</body>
+</html>
